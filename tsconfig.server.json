@@ -1,0 +1,12 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ES2022",
+		"jsx": "react-jsx",
+		"moduleResolution": "Bundler",
+		"esModuleInterop": true,
+		"strictNullChecks": true,
+		"resolveJsonModule": true
+	},
+	"include": ["./server/**/*"]
+}

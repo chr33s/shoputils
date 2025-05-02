@@ -1,0 +1,23 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"checkJs": true,
+		"noEmit": true,
+		"paths": {
+			"~/*": ["./*"]
+		},
+		"skipLibCheck": true,
+		"strict": true,
+		"verbatimModuleSyntax": true
+	},
+	"exclude": ["node_modules"],
+	"files": [],
+	"references": [
+		{
+			"path": "./tsconfig.client.json"
+		},
+		{
+			"path": "./tsconfig.server.json"
+		}
+	]
+}
