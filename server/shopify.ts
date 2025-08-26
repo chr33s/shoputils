@@ -24,7 +24,7 @@ export class ShopifyException extends Error {
 		Object.assign(this, {
 			name: this.constructor.name,
 			errors: [],
-			...(options ?? {}),
+			...options,
 		});
 	}
 }
@@ -42,7 +42,6 @@ export class ShopifyFileStorage implements FileStorage {
 				return null;
 			}
 
-			// biome-ignore lint/style/noNonNullAssertion: ...
 			const name = file.url.split("/").at(-1)!;
 			const type = file.mimeType;
 
@@ -104,7 +103,6 @@ export class ShopifyFileStorage implements FileStorage {
 					: undefined;
 
 				return res.data?.files.nodes.reduce(
-					// biome-ignore lint/suspicious/noExplicitAny: graphql-codegen bug
 					(result: ListResult<ListOptions>, node: any) => {
 						const file = { key: node.originalSource?.url ?? node.url };
 						if (options?.includeMetadata) {

@@ -2,9 +2,10 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"checkJs": true,
+		"erasableSyntaxOnly": true,
 		"noEmit": true,
 		"paths": {
-			"~/*": ["./*"]
+			"#/*": ["./*"]
 		},
 		"skipLibCheck": true,
 		"strict": true,
