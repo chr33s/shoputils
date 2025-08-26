@@ -22,7 +22,7 @@
 	],
 	"scripts": {
 		"build": "tsdown",
-		"check": "oxlint --fix --fix-suggestions --ignore-pattern='**/dist/*' --import-plugin --react-plugin",
+		"check": "oxlint --fix --fix-suggestions --ignore-pattern='**/dist/*' --import-plugin --react-plugin && tsc --noEmit",
 		"test": "vitest --run"
 	},
 	"peerDependencies": {
@@ -41,7 +41,6 @@
 		"vitest": "3.2.4"
 	},
 	"engines": {
-		"node": "^22.14.0",
-		"npm": ">=9.6.4"
+		"node": "^22.18.0"
 	}
 }

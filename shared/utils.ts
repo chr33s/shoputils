@@ -1,0 +1,84 @@
+export type Deserialized = Record<string, any>;
+export function deserialize(value: Serialized) {
+	const output: Deserialized = {};
+
+	function deserializer(object: any) {
+		for (const [key, value] of Object.entries<any>(object)) {
+			// TODO JSON.parse(value)
+
+			const keys = key.split(".").reverse();
+			const obj = keys.reduce((val, newKey) => {
+				const oldKey = newKey.replace(/^\[|\]$/g, "");
+				const isArray = oldKey !== newKey;
+				if (isArray) {
+					const arr: any[] = Array.isArray(val) ? val : [];
+					arr[Number.parseInt(oldKey)] = val;
+					return arr;
+				}
+				return { [oldKey]: val };
+			}, value as any);
+
+			merge(output, obj);
+		}
+	}
+	deserializer(value);
+
+	return output;
+}
+
+function isObject(value: unknown) {
+	const type = Object.prototype.toString.call(value);
+	return type === "[object Object]" || type === "[object Array]";
+}
+
+function merge(target: object, source: object) {
+	if (source == null) return target;
+	if (target == null) return source;
+
+	if (!isObject(target) || !isObject(source)) return source;
+
+	const result = Array.isArray(target) ? [...target] : { ...target };
+
+	const sourceObj = source as Record<string, any>;
+	const resultObj = result as Record<string, any>;
+
+	for (const key in sourceObj) {
+		if (Object.prototype.hasOwnProperty.call(sourceObj, key)) {
+			if (isObject(sourceObj[key]) && isObject(resultObj[key])) {
+				resultObj[key] = merge(resultObj[key], sourceObj[key]);
+			} else {
+				resultObj[key] = sourceObj[key];
+			}
+		}
+	}
+	
+	return result;
+}
+
+export type Serialized = Record<string, string>;
+export function serialize(value: Deserialized) {
+	const output: Serialized = {};
+
+	function serializer(
+		object: any,
+		prevKey?: string,
+		prevValueIsArray?: boolean,
+		currentDepth = 1,
+	) {
+		for (const [key, value] of Object.entries<any>(object)) {
+			let newKey = prevKey ? `${prevKey}.${key}` : key;
+			if (prevValueIsArray) {
+				newKey = prevKey ? `${prevKey}.[${key}]` : key;
+			}
+
+			if (isObject(value) && Object.keys(value).length) {
+				serializer(value, newKey, Array.isArray(value), currentDepth + 1);
+			} else {
+				output[newKey] = value;
+			}
+		}
+	}
+	serializer(value);
+
+	return output;
+}
