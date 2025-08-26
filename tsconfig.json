@@ -3,17 +3,16 @@
 		"baseUrl": ".",
 		"checkJs": true,
 		"erasableSyntaxOnly": true,
+		"esModuleInterop": true,
 		"lib": ["ES2022"],
 		"noEmit": true,
-		"paths": {
-			"#/*": ["./*"]
-		},
 		"skipLibCheck": true,
 		"strict": true,
+		"strictNullChecks": true,
+		"resolveJsonModule": true,
 		"verbatimModuleSyntax": false
 	},
 	"exclude": ["node_modules"],
-	"include": ["./shared/**/*"],
 	"files": [],
 	"references": [
 		{

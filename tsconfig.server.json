@@ -3,11 +3,10 @@
 		"composite": true,
 		"target": "ES2022",
 		"module": "ES2022",
-		"jsx": "react-jsx",
 		"moduleResolution": "Bundler",
-		"esModuleInterop": true,
-		"strictNullChecks": true,
-		"resolveJsonModule": true
+		"paths": {
+			"#*": ["./*"]
+		}
 	},
-	"include": ["./server/**/*"]
+	"include": ["./server/**/*", "./shared/**/*"]
 }

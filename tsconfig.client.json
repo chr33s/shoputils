@@ -6,9 +6,9 @@
 		"lib": ["DOM", "DOM.Iterable", "ES2022"],
 		"jsx": "react-jsx",
 		"moduleResolution": "Bundler",
-		"esModuleInterop": true,
-		"strictNullChecks": true,
-		"resolveJsonModule": true
+		"paths": {
+			"#*": ["./*"]
+		}
 	},
-	"include": ["./client/**/*"]
+	"include": ["./client/**/*", "./shared/**/*"]
 }

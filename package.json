@@ -5,7 +5,9 @@
 	"sideEffects": false,
 	"type": "module",
 	"imports": {
-		"#/*": "./*"
+		"#*": [
+			"./*"
+		]
 	},
 	"exports": {
 		"./client/*": {
