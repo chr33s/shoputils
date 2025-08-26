@@ -2,7 +2,7 @@ import type {
 	FileStorage,
 	ListOptions,
 	ListResult,
-} from "@mjackson/file-storage";
+} from "@remix-run/file-storage";
 import type { GraphQLClient } from "@shopify/graphql-client";
 
 export class ShopifyException extends Error {

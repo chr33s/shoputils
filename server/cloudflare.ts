@@ -5,7 +5,7 @@ import type {
 	FileStorage,
 	ListOptions,
 	ListResult,
-} from "@mjackson/file-storage";
+} from "@remix-run/file-storage";
 
 export namespace R2FileStorage {
 	export interface CustomMetadata extends Record<string, string> {
