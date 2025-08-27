@@ -1,3 +1,23 @@
+export type Log = 'error' | 'warn' | 'info' | 'debug';
+export function createLogger(log: Log) {
+	const logs = {
+		debug: 3,
+		error: 0,
+		info: 2,
+		warn: 1,
+	} as const;
+	let env = "%APP_LOG%" as Log; // compile-time replacement
+	if (!(env in logs)) {
+		env = 'error';
+	}
+
+	return (...args: unknown[]) => {
+		if (logs[log] >= logs[env]) {
+			return console[log](...args);
+		}
+	};
+}
+
 export type Deserialized = Record<string, any>;
 export function deserialize(value: Serialized) {
 	const output: Deserialized = {};
