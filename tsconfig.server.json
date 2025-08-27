@@ -6,7 +6,8 @@
 		"moduleResolution": "Bundler",
 		"paths": {
 			"#*": ["./*"]
-		}
+		},
+		"types": ["@cloudflare/workers-types"],
 	},
-	"include": ["./server/**/*", "./shared/**/*"]
+	"include": ["./shoputils.d.ts", "./server/**/*", "./shared/**/*"]
 }

@@ -3,14 +3,25 @@ import type {
 	ListOptions,
 	ListResult,
 } from "@remix-run/file-storage";
-import type { GraphQLClient } from "@shopify/graphql-client";
+import { env } from "cloudflare:workers";
 
 import { Exception } from "#shared/utils";
+import { createClient, type ClientProps } from "#shared/shopify";
+
+export function client(props: ClientProps) {
+	return createClient({
+		apiVersion: env.SHOPIFY_API_VERSION,
+		type: "admin",
+		...props,
+	});
+}
+
+export type Client = ReturnType<typeof client>;
 
 export class ShopifyFileStorage implements FileStorage {
-	#client: GraphQLClient;
+	#client: Client;
 
-	constructor(client: GraphQLClient) {
+	constructor(client: Client) {
 		this.#client = client;
 	}
 
@@ -34,47 +45,43 @@ export class ShopifyFileStorage implements FileStorage {
 	}
 
 	async list(options?: ListOptions) {
-		return this.#client
-			.request(
-				/* GraphQL */ `
-					#graphql
-					query ShopifyFileStorageList($after: String, $first: Int, $query: String) {
-						files(after: $after, first: $first, query: $query) {
-							nodes {
-								... on GenericFile {
-									id
-									mimeType
-									originalFileSize
-									updatedAt
+		return this.#client({
+			query: /* GraphQL */ `
+				query ShopifyFileStorageList($after: String, $first: Int, $query: String) {
+					files(after: $after, first: $first, query: $query) {
+						nodes {
+							... on GenericFile {
+								id
+								mimeType
+								originalFileSize
+								updatedAt
+								url
+							}
+							... on MediaImage {
+								id
+								mimeType
+								originalSource {
+									fileSize
 									url
 								}
-								... on MediaImage {
-									id
-									mimeType
-									originalSource {
-										fileSize
-										url
-									}
-									updatedAt
-								}
-							}
-							pageInfo {
-								endCursor
-								hasNextPage
-								hasPreviousPage
-								startCursor
+								updatedAt
 							}
 						}
+						pageInfo {
+							endCursor
+							hasNextPage
+							hasPreviousPage
+							startCursor
+						}
 					}
-				`,
-				{
-					variables: {
-						cursor: options?.cursor ?? undefined,
-						first: options?.limit ?? 10,
-						query: options?.prefix ? `filename:${options.prefix}*` : undefined,
-					},
+				}
+			`,
+				variables: {
+					cursor: options?.cursor ?? undefined,
+					first: options?.limit ?? 10,
+					query: options?.prefix ? `filename:${options.prefix}*` : undefined,
 				},
-			)
+			})
 			.then((res) => {
 				const cursor = res.data?.files.pageInfo.hasNextPage
 					? res.data?.files.pageInfo.endCursor
@@ -103,9 +110,8 @@ export class ShopifyFileStorage implements FileStorage {
 	}
 
 	async put(key: string, file: File) {
-		const staged = await this.#client.request(
-			/* GraphQL */ `
-				#graphql
+		const staged = await this.#client({
+			query: /* GraphQL */ `
 				mutation ShopifyFileStoragePutStagedUploadsCreate($input: [StagedUploadInput!]!) {
 					stagedUploadsCreate(input: $input) {
 						stagedTargets {
@@ -123,25 +129,23 @@ export class ShopifyFileStorage implements FileStorage {
 					}
 				}
 			`,
-			{
-				variables: {
-					input: [
-						{
-							// fileSize: file.size,
-							filename: key,
-							httpMethod: "POST",
-							mimeType: file.type,
-							resource: "IMAGE",
-						},
-					],
-				},
+			variables: {
+				input: [
+					{
+						// fileSize: file.size,
+						filename: key,
+						httpMethod: "POST",
+						mimeType: file.type,
+						resource: "IMAGE",
+					},
+				],
 			},
-		);
+		});
 		if (staged.errors) {
 			throw new Exception("File upload server error", {
-				errors: staged.errors.graphQLErrors,
+				errors: staged.errors,
 				status: 400,
-				type: "GRAPHQL",
+				type: "RESPONSE",
 			});
 		}
 
@@ -149,7 +153,7 @@ export class ShopifyFileStorage implements FileStorage {
 			throw new Exception("File upload user error", {
 				errors: staged.data?.stagedUploadsCreate?.userErrors,
 				status: 400,
-				type: "GRAPHQL",
+				type: "RESPONSE",
 			});
 		}
 
@@ -173,9 +177,8 @@ export class ShopifyFileStorage implements FileStorage {
 			});
 		}
 
-		const link = await this.#client.request(
-			/* GraphQL */ `
-				#graphql
+		const link = await this.#client({
+			query: /* GraphQL */ `
 				mutation ShopifyFileStoragePutFileCreate($files: [FileCreateInput!]!) {
 					fileCreate(files: $files) {
 						files {
@@ -199,25 +202,23 @@ export class ShopifyFileStorage implements FileStorage {
 					}
 				}
 			`,
-			{
-				variables: {
-					files: [
-						{
-							duplicateResolutionMode: "REPLACE",
-							filename: key,
-							contentType: "IMAGE",
-							originalSource: target.resourceUrl,
-						},
-					],
-				},
+			variables: {
+				files: [
+					{
+						duplicateResolutionMode: "REPLACE",
+						filename: key,
+						contentType: "IMAGE",
+						originalSource: target.resourceUrl,
+					},
+				],
 			},
-		);
+		});
 
 		if (link.errors) {
 			throw new Exception("File linking server error", {
-				errors: link.errors.graphQLErrors,
+				errors: link.errors,
 				status: 400,
-				type: "GRAPHQL",
+				type: "RESPONSE",
 			});
 		}
 
@@ -225,7 +226,7 @@ export class ShopifyFileStorage implements FileStorage {
 			throw new Exception("File linking user error", {
 				errors: link.data?.fileCreate?.userErrors,
 				status: 400,
-				type: "GRAPHQL",
+				type: "RESPONSE",
 			});
 		}
 
@@ -233,14 +234,13 @@ export class ShopifyFileStorage implements FileStorage {
 			throw new Exception("File linking file error", {
 				errors: link.data?.fileCreate?.files[0]?.fileErrors,
 				status: 400,
-				type: "GRAPHQL",
+				type: "RESPONSE",
 			});
 		}
 
 		while (true) {
-			const { data, errors } = await this.#client.request(
-				/* GraphQL */ `
-					#graphql
+			const { data, errors } = await this.#client({
+				query: /* GraphQL */ `
 					query ShopifyFileStoragePutFile($id: ID!) {
 						node(id: $id) {
 							... on GenericFile {
@@ -266,13 +266,13 @@ export class ShopifyFileStorage implements FileStorage {
 						}
 					}
 				`,
-				{ variables: { id: link.data?.fileCreate?.files?.[0]?.id } },
-			);
+				variables: { id: link.data?.fileCreate?.files?.[0]?.id },
+			});
 			if (errors) {
 				throw new Exception("File processing server error", {
-					errors: errors.graphQLErrors,
+					errors: errors,
 					status: 400,
-					type: "GRAPHQL",
+					type: "RESPONSE",
 				});
 			}
 
@@ -280,7 +280,7 @@ export class ShopifyFileStorage implements FileStorage {
 				throw new Exception("File processing user error", {
 					errors: data?.node.fileErrors,
 					status: 400,
-					type: "GRAPHQL",
+					type: "RESPONSE",
 				});
 			}
 
@@ -289,7 +289,7 @@ export class ShopifyFileStorage implements FileStorage {
 					throw new Exception("File upload failed", {
 						errors: data?.node?.fileErrors,
 						status: 400,
-						type: "GRAPHQL",
+						type: "RESPONSE",
 					});
 
 				case "READY": {
@@ -317,29 +317,27 @@ export class ShopifyFileStorage implements FileStorage {
 				});
 			}
 
-			return this.#client
-				.request(
-					/* GraphQL */ `
-						#graphql
-						mutation ShopifyFileStorageRemove($fileIds: [ID!]!) {
-							fileDelete(fileIds: $fileIds) {
-								deletedFileIds
-								userErrors {
-									code
-									field
-									message
-								}
+			return this.#client({
+				query: /* GraphQL */ `
+					mutation ShopifyFileStorageRemove($fileIds: [ID!]!) {
+						fileDelete(fileIds: $fileIds) {
+							deletedFileIds
+							userErrors {
+								code
+								field
+								message
 							}
 						}
-					`,
-					{ variables: { fileIds: [file.id] } },
-				)
+					}
+				`,
+				variables: { fileIds: [file.id] },
+			})
 				.then((res) => {
 					if (res.errors) {
 						throw new Exception("File delete server error", {
-							errors: res.errors.graphQLErrors,
+							errors: res.errors,
 							status: 400,
-							type: "GRAPHQL",
+							type: "RESPONSE",
 						});
 					}
 
@@ -347,7 +345,7 @@ export class ShopifyFileStorage implements FileStorage {
 						throw new Exception("File delete user error", {
 							errors: res.data?.fileDelete?.userErrors,
 							status: 400,
-							type: "GRAPHQL",
+							type: "RESPONSE",
 						});
 					}
 				});
@@ -355,31 +353,29 @@ export class ShopifyFileStorage implements FileStorage {
 	}
 
 	async request(key: string) {
-		return this.#client
-			.request(
-				/* GraphQL */ `
-					#graphql
-					query ShopifyFileStorageRequest($query: String!) {
-						files(first: 1, query: $query) {
-							nodes {
-								... on GenericFile {
-									id
-									mimeType
+		return this.#client({
+			query: /* GraphQL */ `
+				query ShopifyFileStorageRequest($query: String!) {
+					files(first: 1, query: $query) {
+						nodes {
+							... on GenericFile {
+								id
+								mimeType
+								url
+							}
+							... on MediaImage {
+								id
+								mimeType
+								originalSource {
 									url
-								}
-								... on MediaImage {
-									id
-									mimeType
-									originalSource {
-										url
-									}
 								}
 							}
 						}
 					}
-				`,
-				{ variables: { query: `filename:${key}` } },
-			)
+				}
+			`,
+			variables: { query: `filename:${key}` },
+		})
 			.then((res) => {
 				const [node] = res.data?.files.nodes ?? [];
 				if (node) {
@@ -392,3 +388,5 @@ export class ShopifyFileStorage implements FileStorage {
 			});
 	}
 }
+
+export * from "#shared/shopify";

@@ -75,7 +75,7 @@ function isObject(value: unknown) {
 	return type === "[object Object]" || type === "[object Array]";
 }
 
-function merge(target: object, source: object) {
+export function merge(target: object, source: object) {
 	if (source == null) return target;
 	if (target == null) return source;
 
