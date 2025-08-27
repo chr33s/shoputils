@@ -46,6 +46,30 @@ export function deserialize(value: Serialized) {
 	return output;
 }
 
+export class Exception extends Error {
+	errors?: unknown[];
+	status = 500;
+	type: 'REQUEST' | 'RESPONSE' | 'SERVER' = 'SERVER';
+
+	constructor(
+		message: string,
+		options?: ErrorOptions & {
+			errors?: unknown[];
+			status: number;
+			type: string;
+		},
+	) {
+		super(message);
+
+		Object.setPrototypeOf(this, new.target.prototype);
+		Object.assign(this, {
+			errors: [],
+			name: this.constructor.name,
+			...options,
+		});
+	}
+}
+
 function isObject(value: unknown) {
 	const type = Object.prototype.toString.call(value);
 	return type === "[object Object]" || type === "[object Array]";

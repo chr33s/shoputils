@@ -5,29 +5,7 @@ import type {
 } from "@remix-run/file-storage";
 import type { GraphQLClient } from "@shopify/graphql-client";
 
-export class ShopifyException extends Error {
-	errors?: unknown[];
-	status = 500;
-	type: string;
-
-	constructor(
-		message: string,
-		options: ErrorOptions & {
-			errors?: unknown[];
-			status: number;
-			type: string;
-		},
-	) {
-		super(message);
-
-		Object.setPrototypeOf(this, new.target.prototype);
-		Object.assign(this, {
-			name: this.constructor.name,
-			errors: [],
-			...options,
-		});
-	}
-}
+import { Exception } from "#shared/utils";
 
 export class ShopifyFileStorage implements FileStorage {
 	#client: GraphQLClient;
@@ -160,7 +138,7 @@ export class ShopifyFileStorage implements FileStorage {
 			},
 		);
 		if (staged.errors) {
-			throw new ShopifyException("File upload server error", {
+			throw new Exception("File upload server error", {
 				errors: staged.errors.graphQLErrors,
 				status: 400,
 				type: "GRAPHQL",
@@ -168,7 +146,7 @@ export class ShopifyFileStorage implements FileStorage {
 		}
 
 		if (staged.data?.stagedUploadsCreate?.userErrors?.length) {
-			throw new ShopifyException("File upload user error", {
+			throw new Exception("File upload user error", {
 				errors: staged.data?.stagedUploadsCreate?.userErrors,
 				status: 400,
 				type: "GRAPHQL",
@@ -189,7 +167,7 @@ export class ShopifyFileStorage implements FileStorage {
 			method: "POST",
 		});
 		if (!upload.ok) {
-			throw new ShopifyException(upload.statusText, {
+			throw new Exception(upload.statusText, {
 				status: upload.status,
 				type: "REQUEST",
 			});
@@ -236,7 +214,7 @@ export class ShopifyFileStorage implements FileStorage {
 		);
 
 		if (link.errors) {
-			throw new ShopifyException("File linking server error", {
+			throw new Exception("File linking server error", {
 				errors: link.errors.graphQLErrors,
 				status: 400,
 				type: "GRAPHQL",
@@ -244,7 +222,7 @@ export class ShopifyFileStorage implements FileStorage {
 		}
 
 		if (link.data?.fileCreate?.userErrors?.length) {
-			throw new ShopifyException("File linking user error", {
+			throw new Exception("File linking user error", {
 				errors: link.data?.fileCreate?.userErrors,
 				status: 400,
 				type: "GRAPHQL",
@@ -252,7 +230,7 @@ export class ShopifyFileStorage implements FileStorage {
 		}
 
 		if (link.data?.fileCreate?.files?.[0]?.fileErrors.length) {
-			throw new ShopifyException("File linking file error", {
+			throw new Exception("File linking file error", {
 				errors: link.data?.fileCreate?.files[0]?.fileErrors,
 				status: 400,
 				type: "GRAPHQL",
@@ -291,7 +269,7 @@ export class ShopifyFileStorage implements FileStorage {
 				{ variables: { id: link.data?.fileCreate?.files?.[0]?.id } },
 			);
 			if (errors) {
-				throw new ShopifyException("File processing server error", {
+				throw new Exception("File processing server error", {
 					errors: errors.graphQLErrors,
 					status: 400,
 					type: "GRAPHQL",
@@ -299,7 +277,7 @@ export class ShopifyFileStorage implements FileStorage {
 			}
 
 			if (data?.node?.fileErrors.length) {
-				throw new ShopifyException("File processing user error", {
+				throw new Exception("File processing user error", {
 					errors: data?.node.fileErrors,
 					status: 400,
 					type: "GRAPHQL",
@@ -308,7 +286,7 @@ export class ShopifyFileStorage implements FileStorage {
 
 			switch (data?.node?.fileStatus) {
 				case "FAILED":
-					throw new ShopifyException("File upload failed", {
+					throw new Exception("File upload failed", {
 						errors: data?.node?.fileErrors,
 						status: 400,
 						type: "GRAPHQL",
@@ -333,7 +311,7 @@ export class ShopifyFileStorage implements FileStorage {
 	async remove(key: string) {
 		return this.request(key).then(async (file) => {
 			if (!file) {
-				throw new ShopifyException("File not found", {
+				throw new Exception("File not found", {
 					status: 404,
 					type: "REQUEST",
 				});
@@ -358,7 +336,7 @@ export class ShopifyFileStorage implements FileStorage {
 				)
 				.then((res) => {
 					if (res.errors) {
-						throw new ShopifyException("File delete server error", {
+						throw new Exception("File delete server error", {
 							errors: res.errors.graphQLErrors,
 							status: 400,
 							type: "GRAPHQL",
@@ -366,7 +344,7 @@ export class ShopifyFileStorage implements FileStorage {
 					}
 
 					if (res.data?.fileDelete?.userErrors?.length) {
-						throw new ShopifyException("File delete user error", {
+						throw new Exception("File delete user error", {
 							errors: res.data?.fileDelete?.userErrors,
 							status: 400,
 							type: "GRAPHQL",
