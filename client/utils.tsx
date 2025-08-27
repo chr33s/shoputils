@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
 
+import { createFetcher } from '#shared/fetch';
+
 export function useData<T>({ defaults, values }: { defaults: T; values?: T }) {
 	const [data, set] = useState<T>(values ?? defaults);
 
@@ -102,3 +104,9 @@ export function useData<T>({ defaults, values }: { defaults: T; values?: T }) {
 		return path.split(/[.[\]]/).filter(Boolean);
 	}
 }
+
+export function useFetch(props: RequestInit) {
+  const fetcher = createFetcher(props);
+  return fetcher;
+}
+
