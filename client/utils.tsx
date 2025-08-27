@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { createFetcher } from '#shared/fetch';
 
@@ -103,6 +103,42 @@ export function useData<T>({ defaults, values }: { defaults: T; values?: T }) {
 	function parse(path: string) {
 		return path.split(/[.[\]]/).filter(Boolean);
 	}
+}
+
+export function useDebounceCallback(
+	callback: (...args: any[]) => Promise<void> | void,
+	delay: number,
+) {
+	const timeout = useRef<number>(null);
+	const ref = useRef(callback);
+	useEffect(() => {
+		ref.current = callback;
+
+		return () => {
+			if (timeout.current) {
+				clearTimeout(timeout.current);
+			}
+		};
+	}, [callback]);
+
+	return useCallback(
+		(...args: Parameters<typeof callback>) => {
+			if (timeout.current) clearTimeout(timeout.current);
+			timeout.current = setTimeout(() => ref.current(...args), delay);
+		},
+		[delay],
+	);
+}
+
+export function useDebounceValue(props: { value: string; delay: number }) {
+	const [value, setValue] = useState(props.value);
+
+	useEffect(() => {
+		const handler = setTimeout(() => setValue(value), props.delay);
+		return () => clearTimeout(handler);
+	}, [props.delay, value]);
+
+	return value;
 }
 
 export function useFetch(props: RequestInit) {
