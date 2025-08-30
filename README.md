@@ -2,12 +2,13 @@
 
 > Utilities for Shopify React Router (v7) apps for running on Cloudflare
 
-## Features pipelline
+## Features pipeline
 
 - Isomorphic (Universal) Shopify utilities for [billing, bulkOperations, metafields, metaobjects, uploads]
 - Shopify cli extensions [secret management, deployment environments, testing]
 - Github actions [app, extension, theme] deployment & rollout
 - Bundler free theme utilities (-> encapsulated sections [css, js, json, liquid])
+- + see [issues](https://github.com/chr33s/shoputils/issues)
 
 ### Branching convention
 
