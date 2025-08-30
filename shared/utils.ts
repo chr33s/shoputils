@@ -75,6 +75,29 @@ function isObject(value: unknown) {
 	return type === "[object Object]" || type === "[object Array]";
 }
 
+export const JSONL = {
+	parse(jsonl: string) {
+		return jsonl
+			.split('\n')
+			.filter((string) => string !== '')
+			.map<JSONL>((string) => JSON.parse(string));
+	},
+
+	stringify(array: object[]): string {
+		return array.map((object) => JSON.stringify(object)).join('\n');
+	},
+}
+
+export type JSON =
+	| string
+	| number
+	| boolean
+	| null
+	| {[key: string]: JSON}
+	| JSON[];
+
+export type JSONL = Record<'__parentId' | 'id', string> & Record<string, JSON | JSON[]>;
+
 export function merge(target: object, source: object) {
 	if (source == null) return target;
 	if (target == null) return source;
