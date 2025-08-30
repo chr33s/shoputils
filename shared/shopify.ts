@@ -63,6 +63,22 @@ export interface DetectorOptions {
 	searchParams: URLSearchParams;
 }
 
+export const gid = {
+	decode(gid: GID) {
+		const parts = gid.split('/');
+		return {
+			id: parts.at(-1),
+			ownerType: parts.at(-2),
+		};
+	},
+
+	encode(ownerType: string, id: string): GID {
+		return `gid://shopify/${ownerType}/${id}`;
+	},
+};
+
+type GID = `gid://shopify/${string}/${string}`;
+
 export class ShopifyLanguageDetector implements LanguageDetectorModule {
 	public type = "languageDetector" as const;
 
