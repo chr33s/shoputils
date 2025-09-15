@@ -24,8 +24,6 @@ export function deserialize(value: Serialized) {
 
 	function deserializer(object: any) {
 		for (const [key, value] of Object.entries<any>(object)) {
-			// TODO JSON.parse(value)
-
 			const keys = key.split(".").reverse();
 			const obj = keys.reduce((val, newKey) => {
 				const oldKey = newKey.replace(/^\[|\]$/g, "");
@@ -36,7 +34,7 @@ export function deserialize(value: Serialized) {
 					return arr;
 				}
 				return { [oldKey]: val };
-			}, value as any);
+			}, safeParse(value) as any);
 
 			merge(output, obj);
 		}
@@ -129,6 +127,18 @@ export function merge(target: object, source: object) {
 	}
 	
 	return result;
+}
+
+export function safeParse(value: string) {
+	let parsed = value;
+	if (typeof value === "string") {
+		try {
+			parsed = JSON.parse(value);
+		} catch {
+			parsed = value;
+		}
+	}
+	return parsed;
 }
 
 export type Serialized = Record<string, string>;
