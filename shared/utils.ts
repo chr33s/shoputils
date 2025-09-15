@@ -70,6 +70,15 @@ export class Exception extends Error {
 	}
 }
 
+export function formDataObject(formData: FormData) {
+	const object: Record<string, FormDataEntryValue | FormDataEntryValue[]> = {};
+	for (const key of formData.keys()) {
+		const values = formData.getAll(key);
+		object[key] = values.length > 1 ? values : values[0];
+	}
+	return object;
+}
+
 function isObject(value: unknown) {
 	const type = Object.prototype.toString.call(value);
 	return type === "[object Object]" || type === "[object Array]";
