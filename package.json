@@ -24,7 +24,7 @@
 	],
 	"scripts": {
 		"build": "tsdown",
-		"check": "oxlint --fix --fix-suggestions --ignore-pattern='**/dist/*' --import-plugin --react-plugin && prettier --write && tsc --noEmit",
+		"check": "oxlint --fix --fix-suggestions --ignore-pattern='**/dist/*' --import-plugin --react-plugin && prettier --write . && tsc --noEmit",
 		"test": "vitest --run"
 	},
 	"peerDependencies": {
@@ -58,5 +58,10 @@
 	},
 	"engines": {
 		"node": "^22.18.0"
+	},
+	"prettier": {
+		"plugins": [
+			"@prettier/plugin-oxc"
+		]
 	}
 }

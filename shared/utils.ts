@@ -1,4 +1,4 @@
-export type Log = 'error' | 'warn' | 'info' | 'debug';
+export type Log = "error" | "warn" | "info" | "debug";
 export function createLogger(log: Log) {
 	const logs = {
 		debug: 3,
@@ -8,7 +8,7 @@ export function createLogger(log: Log) {
 	} as const;
 	let env = "%APP_LOG%" as Log; // compile-time replacement
 	if (!(env in logs)) {
-		env = 'error';
+		env = "error";
 	}
 
 	return (...args: unknown[]) => {
@@ -25,16 +25,19 @@ export function deserialize(value: Serialized) {
 	function deserializer(object: any) {
 		for (const [key, value] of Object.entries<any>(object)) {
 			const keys = key.split(".").reverse();
-			const obj = keys.reduce((val, newKey) => {
-				const oldKey = newKey.replace(/^\[|\]$/g, "");
-				const isArray = oldKey !== newKey;
-				if (isArray) {
-					const arr: any[] = Array.isArray(val) ? val : [];
-					arr[Number.parseInt(oldKey)] = val;
-					return arr;
-				}
-				return { [oldKey]: val };
-			}, safeParse(value) as any);
+			const obj = keys.reduce(
+				(val, newKey) => {
+					const oldKey = newKey.replace(/^\[|\]$/g, "");
+					const isArray = oldKey !== newKey;
+					if (isArray) {
+						const arr: any[] = Array.isArray(val) ? val : [];
+						arr[Number.parseInt(oldKey)] = val;
+						return arr;
+					}
+					return { [oldKey]: val };
+				},
+				safeParse(value) as any,
+			);
 
 			merge(output, obj);
 		}
@@ -47,7 +50,7 @@ export function deserialize(value: Serialized) {
 export class Exception extends Error {
 	errors?: unknown[];
 	status = 500;
-	type: 'REQUEST' | 'RESPONSE' | 'SERVER' = 'SERVER';
+	type: "REQUEST" | "RESPONSE" | "SERVER" = "SERVER";
 
 	constructor(
 		message: string,
@@ -85,25 +88,26 @@ function isObject(value: unknown) {
 export const JSONL = {
 	parse(jsonl: string) {
 		return jsonl
-			.split('\n')
-			.filter((string) => string !== '')
+			.split("\n")
+			.filter((string) => string !== "")
 			.map<JSONL>((string) => JSON.parse(string));
 	},
 
 	stringify(array: object[]): string {
-		return array.map((object) => JSON.stringify(object)).join('\n');
+		return array.map((object) => JSON.stringify(object)).join("\n");
 	},
-}
+};
 
 export type JSON =
 	| string
 	| number
 	| boolean
 	| null
-	| {[key: string]: JSON}
+	| { [key: string]: JSON }
 	| JSON[];
 
-export type JSONL = Record<'__parentId' | 'id', string> & Record<string, JSON | JSON[]>;
+export type JSONL = Record<"__parentId" | "id", string> &
+	Record<string, JSON | JSON[]>;
 
 export function merge(target: object, source: object) {
 	if (source == null) return target;
@@ -125,7 +129,7 @@ export function merge(target: object, source: object) {
 			}
 		}
 	}
-	
+
 	return result;
 }
 

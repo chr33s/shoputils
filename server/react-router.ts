@@ -1,6 +1,6 @@
-import {data} from 'react-router';
+import { data } from "react-router";
 
-import { Exception } from '#shared/utils';
+import { Exception } from "#shared/utils";
 
 export async function handler<T>(fn: () => Promise<T>) {
 	try {
@@ -9,8 +9,8 @@ export async function handler<T>(fn: () => Promise<T>) {
 		if (error instanceof Response) return error;
 		if (error instanceof Exception) {
 			switch (error.type) {
-				case 'RESPONSE':
-				case 'REQUEST': {
+				case "RESPONSE":
+				case "REQUEST": {
 					return data(
 						{
 							data: undefined,
@@ -19,7 +19,7 @@ export async function handler<T>(fn: () => Promise<T>) {
 						},
 						{
 							status: error.status,
-							statusText: 'TEST',
+							statusText: "TEST",
 						},
 					);
 				}
@@ -34,7 +34,7 @@ export async function handler<T>(fn: () => Promise<T>) {
 		throw data(
 			{
 				data: undefined,
-				errors: [{message: 'Unknown Error'}],
+				errors: [{ message: "Unknown Error" }],
 			},
 			500,
 		);

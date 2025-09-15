@@ -1,4 +1,4 @@
-import {merge} from './utils';
+import { merge } from "./utils";
 
 export function createFetcher(props: RequestInit) {
 	return async function fetcher(input: RequestInfo | URL, init?: RequestInit) {
@@ -11,23 +11,26 @@ export function createFetcher(props: RequestInit) {
 			}
 		}
 		return response;
-	}
+	};
 
 	async function rateLimit(response: Response) {
-		const retryAfter = response.headers.get('Retry-After');
+		const retryAfter = response.headers.get("Retry-After");
 		const waitTime = retryAfter ? parseInt(retryAfter, 10) * 1000 : 1000;
 		await wait(waitTime);
 	}
 
-	async function retry(request: () => Promise<Response>, { attempts, delay } = { attempts: 3, delay: 100 }) {
+	async function retry(
+		request: () => Promise<Response>,
+		{ attempts, delay } = { attempts: 3, delay: 100 },
+	) {
 		let attempt = 0;
 		let ms = 0;
 
-		while(true) {
+		while (true) {
 			let response: Response;
 			try {
 				response = await request();
-				if (response.status > 500) throw new Error('Retry');
+				if (response.status > 500) throw new Error("Retry");
 				return response;
 			} catch {
 				if (++attempt >= attempts) return response;

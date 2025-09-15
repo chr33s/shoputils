@@ -47,7 +47,11 @@ export class ShopifyFileStorage implements FileStorage {
 	async list(options?: ListOptions) {
 		return this.#client({
 			query: /* GraphQL */ `
-				query ShopifyFileStorageList($after: String, $first: Int, $query: String) {
+				query ShopifyFileStorageList(
+					$after: String
+					$first: Int
+					$query: String
+				) {
 					files(after: $after, first: $first, query: $query) {
 						nodes {
 							... on GenericFile {
@@ -76,43 +80,44 @@ export class ShopifyFileStorage implements FileStorage {
 					}
 				}
 			`,
-				variables: {
-					cursor: options?.cursor ?? undefined,
-					first: options?.limit ?? 10,
-					query: options?.prefix ? `filename:${options.prefix}*` : undefined,
-				},
-			})
-			.then((res) => {
-				const cursor = res.data?.files.pageInfo.hasNextPage
-					? res.data?.files.pageInfo.endCursor
-					: undefined;
+			variables: {
+				cursor: options?.cursor ?? undefined,
+				first: options?.limit ?? 10,
+				query: options?.prefix ? `filename:${options.prefix}*` : undefined,
+			},
+		}).then((res) => {
+			const cursor = res.data?.files.pageInfo.hasNextPage
+				? res.data?.files.pageInfo.endCursor
+				: undefined;
 
-				return res.data?.files.nodes.reduce(
-					(result: ListResult<ListOptions>, node: any) => {
-						const file = { key: node.originalSource?.url ?? node.url };
-						if (options?.includeMetadata) {
-							Object.assign(file, {
-								lastModified: new Date(node.updatedAt).getTime(),
-								name: file.key.split("/").at(-1),
-								size: node.originalSource?.fileSize ?? node.originalFileSize,
-								type: node.mimeType,
-							});
-						}
-						result.files.push(file);
-						return result;
-					},
-					{
-						cursor,
-						files: [],
-					},
-				);
-			});
+			return res.data?.files.nodes.reduce(
+				(result: ListResult<ListOptions>, node: any) => {
+					const file = { key: node.originalSource?.url ?? node.url };
+					if (options?.includeMetadata) {
+						Object.assign(file, {
+							lastModified: new Date(node.updatedAt).getTime(),
+							name: file.key.split("/").at(-1),
+							size: node.originalSource?.fileSize ?? node.originalFileSize,
+							type: node.mimeType,
+						});
+					}
+					result.files.push(file);
+					return result;
+				},
+				{
+					cursor,
+					files: [],
+				},
+			);
+		});
 	}
 
 	async put(key: string, file: File) {
 		const staged = await this.#client({
 			query: /* GraphQL */ `
-				mutation ShopifyFileStoragePutStagedUploadsCreate($input: [StagedUploadInput!]!) {
+				mutation ShopifyFileStoragePutStagedUploadsCreate(
+					$input: [StagedUploadInput!]!
+				) {
 					stagedUploadsCreate(input: $input) {
 						stagedTargets {
 							parameters {
@@ -331,24 +336,23 @@ export class ShopifyFileStorage implements FileStorage {
 					}
 				`,
 				variables: { fileIds: [file.id] },
-			})
-				.then((res) => {
-					if (res.errors) {
-						throw new Exception("File delete server error", {
-							errors: res.errors,
-							status: 400,
-							type: "RESPONSE",
-						});
-					}
+			}).then((res) => {
+				if (res.errors) {
+					throw new Exception("File delete server error", {
+						errors: res.errors,
+						status: 400,
+						type: "RESPONSE",
+					});
+				}
 
-					if (res.data?.fileDelete?.userErrors?.length) {
-						throw new Exception("File delete user error", {
-							errors: res.data?.fileDelete?.userErrors,
-							status: 400,
-							type: "RESPONSE",
-						});
-					}
-				});
+				if (res.data?.fileDelete?.userErrors?.length) {
+					throw new Exception("File delete user error", {
+						errors: res.data?.fileDelete?.userErrors,
+						status: 400,
+						type: "RESPONSE",
+					});
+				}
+			});
 		});
 	}
 
@@ -375,17 +379,16 @@ export class ShopifyFileStorage implements FileStorage {
 				}
 			`,
 			variables: { query: `filename:${key}` },
-		})
-			.then((res) => {
-				const [node] = res.data?.files.nodes ?? [];
-				if (node) {
-					return {
-						id: node.id,
-						mimeType: node.mimeType,
-						url: node.originalSource?.url ?? node.url,
-					};
-				}
-			});
+		}).then((res) => {
+			const [node] = res.data?.files.nodes ?? [];
+			if (node) {
+				return {
+					id: node.id,
+					mimeType: node.mimeType,
+					url: node.originalSource?.url ?? node.url,
+				};
+			}
+		});
 	}
 }
 

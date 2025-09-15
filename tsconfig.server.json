@@ -7,7 +7,7 @@
 		"paths": {
 			"#*": ["./*"]
 		},
-		"types": ["@cloudflare/workers-types"],
+		"types": ["@cloudflare/workers-types"]
 	},
 	"include": ["./shoputils.d.ts", "./server/**/*", "./shared/**/*"]
 }
