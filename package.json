@@ -29,11 +29,15 @@
 	},
 	"peerDependencies": {
 		"i18next": "^25.0.0",
+		"jose": "^6.0.0",
 		"react": "^19.0.0",
 		"react-router": "^7.0.0"
 	},
 	"peerDependenciesMeta": {
 		"i18next": {
+			"optional": true
+		},
+		"jose": {
 			"optional": true
 		},
 		"react-router": {
@@ -47,6 +51,7 @@
 		"@shopify/app-bridge-types": "0.3.0",
 		"@types/react": "19.1.13",
 		"i18next": "25.5.2",
+		"jose": "6.1.0",
 		"oxlint": "1.16.0",
 		"prettier": "3.6.2",
 		"react": "19.1.1",

@@ -7,6 +7,23 @@ import { env } from "cloudflare:workers";
 
 import { Exception } from "#shared/utils";
 import { createClient, type ClientProps } from "#shared/shopify";
+import { verify } from "./utils";
+
+export async function authenticate(request: Request) {
+	return {
+		admin: verify(request).token,
+		customerAccount: verify(request).token,
+		carrierService: verifyHmac("header"),
+		fulfillmentService: verifyHmac("header"),
+		flow: verifyHmac("header"),
+		proxy: verifyHmac("url"),
+		webhook: verifyHmac("header"),
+	};
+
+	function verifyHmac(from: "header" | "url") {
+		return (secret: string) => verify(request).hmac({ from, secret });
+	}
+}
 
 export function client(props: ClientProps) {
 	return createClient({
