@@ -3,7 +3,6 @@ import type {
 	ListOptions,
 	ListResult,
 } from "@remix-run/file-storage";
-import { env } from "cloudflare:workers";
 
 import { Exception } from "#shared/utils";
 import { createClient, type ClientProps } from "#shared/shopify";
@@ -27,7 +26,6 @@ export async function authenticate(request: Request) {
 
 export function client(props: ClientProps) {
 	return createClient({
-		apiVersion: env.SHOPIFY_API_VERSION,
 		type: "admin",
 		...props,
 	});
